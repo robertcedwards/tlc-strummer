@@ -1,3 +1,14 @@
+All credit to  yoe in Sweden https://www.tindie.com/stores/yoe/
+https://www.tindie.com/products/yoe/t-chordstrum/
+https://hackaday.io/project/25111-t-chordstrum
+
+# Edit for MIDI control device with CC to control MIDI devices via buttons and cap ribbon
+Adding CC for πλ Synth (https://www.ploytec.com/pl2/)
+
+Add CC for Bastl Poly Synth
+
+
+
 # tlc-strummer
 
 This is the firmware for T. Chordstrum - USB MIDI chord strummer for Teensy LC and 3.2
