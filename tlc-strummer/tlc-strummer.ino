@@ -1,6 +1,7 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
 //   Teensy LC chord strummer by Johan Berglund, April 2017            //
+//   Mods made by Robert C Edwards, Jan 2020                           //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
@@ -17,6 +18,9 @@
 
 unsigned long currentMillis = 0L;
 unsigned long statusPreviousMillis = 0L;
+int knobvalue;
+
+
 
 byte colPin[12]          = {15,20,21,5,6,7,8,9,10,11,12,14};// teensy digital input pins for keyboard columns (just leave unused ones empty)
 byte colNote[12]         = {1,8,3,10,5,0,7,2,9,4,11,6};     // column to note number                                            
@@ -77,17 +81,22 @@ void loop() {
   currentMillis = millis();
   if ((unsigned long)(currentMillis - statusPreviousMillis) >= CHECK_INTERVAL) {
     if (BRIGHT_LED) digitalWrite(LED_PIN, LOW);                          // led off for high brightness
-    readKeyboard();                                                      // read keyboard input and replay active notes (if any) with new chording
+                                                       // read keyboard input and replay active notes (if any) with new chording
     for (int scanSensors = 0; scanSensors < PADS; scanSensors++) {       // scan sensors for changes and send note on/off accordingly
-      sensedNote = (touchRead(sensorPin[scanSensors]) > TOUCH_THR);      // read touch pad/pin/electrode/string/whatever
+      sensedNote = (touchRead(sensorPin[scanSensors]) > TOUCH_THR);
+      // read touch pad/pin/electrode/string/whatever
       if (sensedNote != activeNote[scanSensors]) {
-        noteNumber = START_NOTE + chord + chordNote[chordType][scanSensors];
-        if ((noteNumber < 128) && (noteNumber > -1) && (chordNote[chordType][scanSensors] > -1)) {    // we don't want to send midi out of range or play silent notes
+        noteNumber = chordNote[scanSensors];
+        if ((noteNumber < 128) && (noteNumber > -1)) {    // we don't want to send midi out of range or play silent notes
           digitalWrite(LED_PIN, HIGH);                                // sending midi, so light up led
           if (sensedNote){
-              usbMIDI.sendNoteOn(noteNumber, VELOCITY, MIDI_CH);      // send Note On, USB MIDI
+              //usbMIDI.sendNoteOn(noteNumber, VELOCITY, MIDI_CH);      // send Note On, USB MIDI
+              int knobvalue = analogRead(1);
+              knobvalue = map(knobvalue, 0, 1023, 0, 75);
+              usbMIDI.sendControlChange(noteNumber, knobvalue, MIDI_CH);
+
           } else {
-              usbMIDI.sendNoteOff(noteNumber, VELOCITY, MIDI_CH);     // send note Off, USB MIDI
+              //usbMIDI.sendNoteOff(noteNumber, VELOCITY, MIDI_CH);     // send note Off, USB MIDI
           }
           if (!BRIGHT_LED) digitalWrite(LED_PIN, LOW);                // led off for low brightness
         }  
@@ -128,7 +137,9 @@ void readKeyboard() {
       if ((noteNumber < 128) && (noteNumber > -1) && (chordNote[readChordType][i] > -1)) {    // we don't want to send midi out of range or play silent notes
         if (activeNote[i]) {
           digitalWrite(LED_PIN, HIGH);                        // sending midi, so light up led
-          usbMIDI.sendNoteOn(noteNumber, VELOCITY, MIDI_CH);  // send Note On, USB MIDI
+              int knobvalue = analogRead(1);
+              knobvalue = map(knobvalue, 0, 1023, 0, 75);
+              usbMIDI.sendControlChange(noteNumber, knobvalue, MIDI_CH);
           if (!BRIGHT_LED) digitalWrite(LED_PIN, LOW);        // led off for low brightness
         }
       }
@@ -151,4 +162,3 @@ void enableRow(int row) {
   }
   delayMicroseconds(30); // wait before reading ports (let ports settle after changing)
 }
-
